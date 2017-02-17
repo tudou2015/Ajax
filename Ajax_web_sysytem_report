@@ -1,0 +1,1949 @@
+---
+title: "基于Ajax的微课程学习系统的构建和实现"
+author:
+  - 韩坤
+  - 周锐
+  - 方圆
+documentclass: ctexart
+output:
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+  classoption: "hyperref,"
+
+  
+---
+
+
+
+# 前言
+- 首先访问：http://video.ahtvu.ah.cn/default.aspx。
+没错，这是周锐老师2002年8月制作完成的影音在线。很不容易在2002年，我大学还没毕业，asp刚刚兴起，技术工具很不完善，周老师独自完成了这个庞大的视频点播系统，很厉害。12年过去了，视频点播技术得到很大发展，当时难以实现的功能今天有了更好的实现方法，比如说用Ajax方法实现无刷新感更新。课题的起源在这里，后续的一年中，除了总体规划之外，代码编写也得到了周老师长期耐心的指导。工程核心早已经完成，比如说后台数据库的设计，点播实现的方法，后台维护模块,为了匹配当下视频网站推荐的风格，周老师对首页面做了重新设计，方圆老师具体设计制作了大图，。我做的工作仅仅是代码重写，把asp代码改写成asp.net2.0，因为有了前人开拓性完成的基础，这项工作容易了很多。大部分功能和之前是完全一样的，只是加入了Ajax功能。因为之前几乎没写过软件，我是从零开始学起，边学边做，耗时1年做完。2014年（没错，这个工作在2015年课题申请之前已经做了技术上的准备）事情不像现在这么多，中间还有些空隙，可以跟周老师请教编程方面的问题，在此对周老师的耐心指导表示感谢。
+
+- 后续课题会延续周老师2006年到2009年研究的数据分析，就是从考生的考试成绩以及上网学习的情况来推断学生完成学业的可能性，不乐观时及时做出干预，这也是周老师2015年在英国开放大学进修访问时英开做的课题，希望将来能得到科研课题审批方面的支持，谢谢。好了，从前面的网站访问可以看到，开发目标：利用Ajax实现无刷新感的微课程学习系统，已经达到。数据库设计核心没动，做了补充，根据省教育厅要求电大资源对社会开放，增加了社会人员注册登陆这一块的信息记录；点播技术为使用微软的Mediaplay技术支持播放没变，调整了播放窗口的大小；首页面设计按照流行的推荐界面设计成大图，下面是按本科、专科学科分来，右侧为点播排行榜和最新上传，这些都是补充完善性工作，不展开介绍，因为之前周老师已有课题介绍。后面重点介绍本课题创新加入的Ajax功能。截至目前软件已修改168版。
+   
+- 1、什么是Ajax,asp.net2.0中如何使用？
+- 2、有没有简洁明了的方案，如何实现？
+- 3、相关配套的实现，前端设计、后台数据库设计、微课程录制等。
+- 4、Ajax运行如何可视化。
+以上这些问题都在后面进行阐述。
+
+- 最后，非常感谢周锐、陈冬梅、朱悦、方圆，除去课题中的指导和支持，日常工作中也给与了很大帮助，特别感谢陈培颖、韩希烨给我前进的动力，和长期以来的支持，在我遇到难题的时候也不会轻易放弃。
+
+
+# 国内外研究现状、选题意义和研究价值
+## 国内外研究现状
+- 目前Ajax已经成为了Web应用的主流开发技术，大量的业界巨头已经采纳并且在大力推动这个技术的发展。最近的动态包括：
+
+* > 1. IBM、Oracle、Yahoo!、BEA、RedHat、Novell等页界领先的公司启动了Open Ajax项目。致力于为Ajax开发建造先进强大的的开发工具。IBM在2月底已经发布了Open Ajax项目的Ajax Toolkit Framework(ATF)1.0，是一个基于Eclipse IDE的Ajax开发工具。
+> 2. 微软开发了自己的Ajax框架Altas，不过主要是和服务器端他们自己的ASP.NET框架配合工作。
+> 3. Sun虽然行动迟缓，但是也将Ajax技术列入了J2EE的blueprint(蓝图)中，作为J2EE技术的有益的补充。
+
+- 由于生活节奏的不断加快和网络技术的快速发展，目前微课程在国内外十分流行。各大主流视频网站上均能找到微课程的踪影，但是专门做微课程的网站却不多，目前只搜索到爱课程、爱课网等为数不多几家。电大系统很多省校在此方面做了尝试，但多数是购买网络公司的平台，比如深圳电大使用的是某公司的产品，由于不是为开放教育所定制，不符合开放教育的实际需求，很多缺陷无法克服。比如：在线播放时不够流畅，每个模块都要收费，格式封闭，只能进行简单编辑。
+- 笔者对相关关键词作了搜索，结果如下表。
+
+* |关键词|中国博士学位论文全文数据库|中国优秀硕士学位论文全文数据库|
+|------|:------------------------:|:----------------------------:|
+|Ajax	| 382	| 11582|
+|微课程|	5	|20    |
+|Ajax 微课程|	0	|0 |
+|Ajax 微课程 学习系统|	0|	0|
+
+   
+## 选题意义
+- 分校系统升级已过去十年，设备老化、技术资金缺乏导致很多分校视频点播服务器已不能正常使用，分校学生直接访问省校服务器，服务器压力倍增，使用Ajax技术可有效缓解服务器压力。
+- 本研究针对微课程在开放教育中的特点，合理科学构建微课程学习系统，利用发展成熟的Ajax技术+Jquery框架，打造符合开放教育特点、省校分校界面风格统一的微课程学习平台。
+- 采集的学习数据将来能有效指导开放教育各项教学活动，带来巨大经济效益。
+## 研究价值
+- 该系统的建设可为省校开放教育带来新的突破和增长点，方便社会学习者、各分校等活动主体快速地进行学习相关活动，进一步的提高了学习活动的主体意识，促使社会学习者主动融入到学习活动当中，参与性更加简捷快速，从而为开放教育产业以及整个经济发展创造出更大的效益。
+
+# 研究目标、研究内容、研究假设和创新之处
+
+## 研究目标
+> 本文将从开放教育的特点出发，以**Ajax**技术为基础，构建无刷新感的微课程学习系统。最终效果请访问<http://video.ahtvu.ah.cn/default.aspx>
+
+##研究内容
+
+### Ajax技术
+- 术语Ajax用来描述一组技术，它使浏览器可以为用户提供更为自然的浏览体验。在Ajax之前，Web站点强制用户进入提交/等待/重新显示范例，用户的动作总是与服务器的“思考时间”同步。Ajax提供与服务器异步通信的能力，从而使用户从请求/响应的循环中解脱出来。借助于Ajax，可以在用户单击按钮时，使用JavaScript和DHTML立即更新UI，并向服务器发出异步请求，以执行更新或查询数据库。当请求返回时，就可以使用JavaScript和CSS来相应地更新UI，而不是刷新整个页面。最重要的是，用户甚至不知道浏览器正在与服务器通信：Web站点看起来是即时响应的。
+
+### 微课程
+- 目前微课程应用较多的领域是职业教育，考试培训，企业培训市场的微课程还比较少，随着智能手机应用，微学习已经开始飞速蔓延，微课程以其简短精悍，随时随地特点也势必会成为炙手可热的课程教学方法。目前主要分为三种类型：
+- 第一种类型：PPT式微课程，此课程比较简单，PPT由文字、音乐、图片构成，设计PPT自动播放功能，然后转换成视频，时间在5分钟左右。
+- 第二种类型：讲课式微课程：由讲师按照微课程要求，按照模块化进行授课拍摄，经过后期剪辑转换，形成微课程，时间为5-10分钟。
+- 第三种类型：情景剧式微课程，此课程借鉴好莱坞大片拍摄模式，企业组成微课研发团队，对课程内容进行情景剧设计策划，撰写脚本，选择导演、演员、场地进行拍摄，经过制片人后期视频剪辑制作，最终形成微课程。时间为5-10分钟。
+- 本课题主要研究微课程传播的平台，而不是过多的阐述微课程的具体制作问题。
+
+### 模型构建
+- 采用面向对象的模型构建方式对微课程学习系统作完整的模型构建。
+
+### 信息研究
+- 美国数学、通讯工程师、生理学家维纳认为，客观世界有一种普遍的联系，即信息联系。信息方法就是根据信息论、系统论、控制论的原理，通过对学习信息的收集、传递、加工和整理获得知识，并应用于实践，以更好的指导远程教育工作。
+## 研究假设
+- 目前， 各分校服务器设备老化，视频点播这块不堪重负，多数学生直接访问省校服务器，导致访问速度变慢，采用Ajax技术可有效缓解网络访问压力。
+
+## 创新之处
+
+- 将Ajax技术引入到微课程的学习中，打破技术限制，打造符合开放教育特点的学习系统。 
+- 采集学习数据，为下一步的数据分析进行数据储备，从而能够将来指导开放教育教学活动。
+
+# 研究思路、研究方法、技术路线和实施步骤
+## 研究思路
+- 本文将从微课程的网络点播角度出发，以Ajax技术为基础，为微课程学习系统构建完整的学习数据整合模型，并根据模型完成数据访问接口的设计与编码。
+## 研究方法    
+- 软件利用asp.net2.0和C#语言来开发，采用Jquery框架，基于Ajax技术访问SQL数据库，完成数据访问接口的设计与编码。
+
+##**技术路线**
+> - 课题立项-〉资料收集-〉确定总体功能-〉设计主页面-〉前端代码编写-〉后台代码编写-〉微课程制作-〉联调联试-〉不断修改-〉上线-〉用户反馈-〉不断完善。
+
+## 实施步骤
+
+- 内容：视频点播前端页面设计，后台服务器搭建，视频相关信息采用**ajax**技术实时刷新。
+- 方法：前端采用jquery+css，后台采用asp.net2.0+sql2005，微课程采用vegas剪辑制作。
+- 组织分工：周锐总体设计，韩坤搭建后台，方圆制作前端页面和微课。
+- 进度安排：2015.3.18-2015.12.31 相关资料收集并整理
+            2016.01.01-2016.08.30 ajax数据访问接口实现
+            2016.09.01-2016.12.31 结题报告
+- 经费分配：材料费2380，资料费90，印刷费30。
+- 预期成果：结题报告<>，视频点播网站<http://video.ahtvu.ah.cn/default.aspx>
+
+# 网站情况概述
+
+- 1、开发工具: vs2008+sql2005
+- 2、开发框架：jquery1.8.3.js(改进版本)
+- 3、 主要功能：登陆、浏览、播放（包括单视频和3分屏）
+- 4、人员区分：0游客、1校内、2学员、3校外注册人员、4分校、5hack
+- 5、视频分类：0完全公开（比如各专业介绍、微课程）、1内部（各专业课程，将来可选择开放，将部分属性改为2）、2半公开（注册可访问，比如通识课），这一块通过识别人员类别和specia属性0或1来确定是否能访问。
+- 6、菜单分类：本科、专科、公共课、通识课（新增，校外人员需注册访问）、专题（包括各专业介绍和教学比武类新闻等，完全公开，游客可访问）、微课程（完全公开）
+- 7、页面区分：主页、专业页、课程页（列表分类资源为单视频和3分屏两大类）、播放页（单视频采用media控件嵌入播放，3分屏采用iframe框架嵌入播放）
+- 8、技术难点：
+* > （1）登陆方式及浏览器的兼容（登陆采用div弹出层方式，解决了ie6/7/8的呈现兼容问题）
+* > （2）视频播放问题。经过不断尝试，最终采用jquery框架的media插件实现asf/wmv格式的单视频播放，iframe嵌入3分屏播放（便于采集客户访问信息），火狐能支持到29版本之前）
+* > （3）浏览器兼容问题。有效解决了ie6/7/8/9/10/11、360浏览器、火狐29版本之前的登陆呈现兼容、圆角阴影效果兼容、视频播放等兼容问题。
+- 9、技术亮点：采用pie.js实现ie6-8本不支持的圆角和投影呈现效果。
+- 10、数据库解决方案：采用3层架构，编写了数据链路层，便于将来数据扩展。
+- 11、数据库防护措施：1、正则表达式限制输入规则；2、敏感字符过滤；3、sql采用参数化查询方式，利用.net本身机制对字符过滤。
+- 11、记录日志：1、浏览日志；2hack日志（记录sql注入式攻击和不规范输入）
+- 12、目前运行情况：自2014年11月28日上线试运行截至2017年2月15日下午17:00，共计有**1107**名学员登陆访问，有记录看视频最长时间52分9秒。
+安徽广播电视大学数字化资源中心面向全社会提供远程资源服务，请实名注册后登录访问。
+* > 网站完善交流QQ群：315207866，email:zyzx@ahou.edu.cn，技术支持QQ：2232563562。
+
+# 关键技术
+- 访问网址<http://video.ahtvu.ah.cn/>或<http://218.22.21.229/>或点击安徽广播电视大学主页资源展示菜单右下方“查看更多”链接。校内人员（包含分校）选择校内登陆方（免登陆），学员选择学员登陆方式（填写姓名、学号和身份证号），社会人员可以先注册经邮箱审核通过后再登陆访问开放资源(暂时免审核,验证姓名和身份证是真实的-实名注册)。
+
+##  **Ajax**技术
+- 简单的说，就是网页局部刷新，无须等待。
+网页不抖动、实时交互无需重新载入，使用者体验好。
+vs2008自带3个ajax控件，具体使用参见书目1。
+更简单的使用方法，js控件调用ajax()方法。看下百度百科的介绍：
+* > AJAX即“Asynchronous Javascript And XML”（异步JavaScript和XML），是指一种创建交互式网页应用的网页开发技术。
+  > AJAX = 异步 JavaScript和XML（标准通用标记语言的子集）。
+  > AJAX 是一种用于创建快速动态网页的技术。
+  > 通过在后台与服务器进行少量数据交换，AJAX 可以使网页实现异步更新。这意味着可以在不重新加载整个网页的情况下，对网页的某部分进行更新。
+  > 传统的网页（不使用 AJAX）如果需要更新内容，必须重载整个网页页面。
+  
+-  如何实现呢？
+非常幸运，asp.net2.0直接提供了这样的功能。但是欠灵活，找到更灵活方便的方法，使用jquery.ajax。先引用jquery.1.8.3.js,再页面调用jquery.ajax方法即可。
+### （1）学生登陆界面代码如下：
+```{rcpp}
+<div id="OpenWindow_student">
+        <div id="signup-ct_student">
+            <div id="OpenWindow-header_student">
+                <h2>安徽广播电视大学数字化资源中心欢迎您
+                <a href="#" class="modal_close"></a>
+                </h2>
+            </div>
+            <div class="txt-fld">
+                <label for="">姓&nbsp; &nbsp;&nbsp; &nbsp;名</label><input type="text" name=""  id="xingmin_student" value="" onkeydown="if(event.keyCode==13)event.keyCode=9"/><span></span> 
+            </div>
+            <div class="txt-fld">
+                <label for="">学&nbsp; &nbsp;&nbsp; &nbsp;号</label><input type="password" name=""  id="xuehao_student" value="" onkeydown="if(event.keyCode==13)event.keyCode=9"/><span></span> 
+            </div>
+            <div class="txt-fld">
+                <label for="">身份证号</label><input type="password" name="" id="sfzh_student" value=""/><span></span> 
+            </div>
+            
+            <div class="btn-fld">
+                <button type="button" id="button_student" value="">学生登陆 »</button>
+            </div>
+        </div>
+    </div>
+```
+### （2）点击登陆后，login_student_ashx.js脚本控制发送json格式数据到服务器端。代码如下：
+```{rcpp}
+$(document).ready(function() {
+    $('#button_student').click(function() {
+//      $("div").load("../images/loading.gif");
+        if (checkXm_student()&&checkXuehao_student()&&checkSfzh_student()) {
+        var data1 = { 
+        username: escape($('#xingmin_student').val()), 
+        xuehao: escape($('#xuehao_student').val()), 
+        sfzh: escape($('#sfzh_student').val()) }; 
+            $.ajax({
+                type: "post", //客户端向服务器发送请求时采取的方式                                 
+                url: "ajax/login_student.ashx",
+                data:data1,                
+                dataType: "html",//text          
+                error: function() { alert("服务器异常"); },                                  
+                success: function(result) {//客户端调用服务器端方法成功后执行的回调函数  
+                     var json = eval(result); //ashx防止返回的不是json而是字符串                  
+                    if (json == "1") {
+//                        alert("登录成功");                       
+                        window.parent.self.location.href="default.aspx";                             
+                        $("#lean_overlay").fadeOut(200);
+                         $("#OpenWindow_student").css({'display':'none'});
+//        		        $($(this).attr("href")).css({ 'display' : 'none' });
+                    }
+                    else {
+                        if (json == "0") {
+                            alert("登录失败");
+                            window.parent.self.location.href="default.aspx";
+                        } 
+                        if(json=="5"){
+                                alert("没有这个用户名，请与教务部门联系");
+                        } 
+                        else {
+                            alert("输入格式不规范，或含有危险字符，已被记录");
+                        }
+                    }
+
+                }
+            });
+        }
+        else {
+            checkXm_student();
+            checkXuehao_student();
+            checkSfzh_student();
+        }
+    });
+    
+     $('#button_xiaonei').click(function() {
+//      $("div").load("../images/loading.gif");       
+            $.ajax({
+                type: "post", //客户端向服务器发送请求时采取的方式
+                url: "ajax/login_xiaonei.ashx",
+                data:"",                    
+                dataType: "html",//text           
+//                beforeSend: function(x) {alert("查询请求已发出");}, 
+                error: function() { alert("服务器异常"); },                                     
+                success: function(result) {//客户端调用服务器端方法成功后执行的回调函数   
+                     var json = eval(result); //ashx防止返回的不是json而是字符串                
+                    if (json == "1") {
+//                        alert("登录成功");                       
+                        window.parent.self.location.href="default.aspx"; 
+                        $("#lean_overlay").fadeOut(200);
+                        $("#OpenWindow_xiaonei").css({'display':'none'});}
+                    else{
+                        if (json == "0") {
+                            alert("登录失败");
+                            window.parent.self.location.href="default.aspx";}
+                        else{
+                            if(json=="5"){
+                                alert("没有这个用户名，请与管理员联系");  $("#lean_overlay").fadeOut(200);
+                                $("#OpenWindow_xiaonei").css({'display':'none'});}
+                            else{alert("输入格式不规范，或含有危险字符，已被记录");}
+                            }
+                        }
+                   } 
+           });       
+    }); 
+    
+     $('#button_xiaowai').click(function() {
+//      $("div").load("../images/loading.gif");
+        if (checkUsername_xiaowai() && checkPassword_xiaowai()) {
+        var data1 = { 
+        username: escape($('#username_xiaowai').val()),       
+        password: escape($('#password_xiaowai').val()) }; 
+            $.ajax({
+                type: "post", //客户端向服务器发送请求时采取的方式                                     
+                url: "ajax/login_xiaowai.ashx",
+                data:data1,                
+                dataType: "html",//text             
+                error: function() { alert("服务器异常"); },                                      
+                success: function(result) {//客户端调用服务器端方法成功后执行的回调函数 
+                     var json = eval(result); //ashx防止返回的不是json而是字符串                 
+                    if (json == "1") {
+//                        alert("登录成功");                       
+                        window.parent.self.location.href="default.aspx"; 
+                        $("#lean_overlay").fadeOut(200);
+                        $("#OpenWindow_xiaowai").css({'display':'none'});
+                    }
+                    else
+                     {
+                        if (json == "0") {
+                            alert("登录失败");
+                            window.parent.self.location.href="default.aspx";
+                        }
+                        else 
+                        {
+                            if(json=="5"){alert("没有这个用户名，请先注册再访问");}                           
+                            else
+                            {
+                               if(json=="6"){
+                                   alert("正在审核中。。。请耐心等待，专题可直接浏览");
+                                   window.parent.self.location.href="default.aspx";
+                               }
+                               else{("输入格式不规范，或含有危险字符，已被记录");}
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            checkUsername_xiaowai();
+            checkPassword_xiaowai();
+//            checkCheckCode();
+        }
+    });  
+    
+    //check the userName 
+    function checkUsername_xiaowai() {
+        if ($("#username_xiaowai").val().length == 0) {
+            $("#username_xiaowai").next("span").css("color", "red").text("不能为空");
+            //alert("用户名不能为空");
+            return false;
+        }
+        else {
+//            var reg = /^\d{3}$|^[a-zA-Z]\w{4,15}$/; //ok
+              var reg = /^\d{3}$|[a-zA-Z][a-zA-Z0-9_]{4,15}$/;
+            if (!reg.test($('#username_xiaowai').val())) {
+                $('#username_xiaowai').next("span").css("color", "red").text("字母开头，字母数字混合5位以上，允许下划线");
+                return false;
+            }
+            else {
+                $("#username_xiaowai").next("span").css("color", "red").text("");
+                return true;
+            }
+        }
+    }
+    //check the pwd 
+    function checkPassword_xiaowai() {
+        if ($('#password_xiaowai').val().length == 0) {
+            $('#password_xiaowai').next("span").css("color", "red").text("不能为空");
+            return false;
+        }
+        else {
+            var reg=/^[a-zA-Z0-9]{6,15}$/;
+            if (!reg.test($('#password_xiaowai').val())) {
+                $('#password_xiaowai').next("span").css("color", "red").text("字母数字混合6位以上");
+                return false;
+            }
+            else {
+                $("#password_xiaowai").next("span").css("color", "red").text("");
+                return true;
+            }
+        }
+    }  
+   
+      //check the userName 
+    function checkXm_student() {
+        if ($("#xingmin_student").val().length == 0) {
+            $("#xingmin_student").next("span").css("color", "red").text("不能为空");
+            //alert("用户名不能为空");
+            return false;
+        }
+        else {
+            var reg = /^\d{3}$|^[\u4e00-\u9fa5]{2,5}$/; //ok
+            if (!reg.test($('#xingmin_student').val())) {
+                $('#xingmin_student').next("span").css("color", "red").text("格式有误");
+                return false;
+            }
+            else {
+                $("#xingmin_student").next("span").css("color", "red").text("");
+                return true;
+            }
+        }
+    }
+      //check the pwd 
+    function checkXuehao_student() {
+        if ($('#xuehao_student').val().length == 0) {
+            $('#xuehao_student').next("span").css("color", "red").text("不能为空");
+            return false;
+        }
+        else {
+            var reg = /^\d{13}$|^\d{11}$|^\d{9}$|^\d{8}$|^\d{7}$|^\d{3}$/;
+            //var reg = /^\d{13}$|\d{11}$|\d{8}|\d{7}$/;
+            if (!reg.test($('#xuehao_student').val())) {
+                $('#xuehao_student').next("span").css("color", "red").text("位数不对");
+                return false;
+            }
+            else {
+                $("#xuehao_student").next("span").css("color", "red").text("");
+                return true;
+            }
+
+        }
+    }
+    
+    // check the check code 
+    function checkSfzh_student() {
+        if ($('#sfzh_student').val().length == 0) {
+            $('#sfzh_student').next("span").css("color", "red").text("不能为空");
+            return false;
+        }
+        else {
+            var reg = /^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{11}$|^\d{8}$|^\d{7}$|^\d{3}$/; //ok
+            if (!reg.test($('#sfzh_student').val())) {
+                $('#sfzh_student').next("span").css("color", "red").text("位数不对");
+                return false;
+            }
+            else {
+                $("#sfzh_student").next("span").css("color", "red").text("");
+                return true;
+            }
+        }
+    } 
+
+});
+```
+### （3）服务器段端收到报文请求后，login_student.ashx进行json数据分析并反馈。代码如下：
+```{rcpp}
+<%@ WebHandler Language="C#" Class="Website.Ajax.login" %>
+
+using System; 
+using System.Collections; 
+using System.Data; 
+using System.Linq; 
+using System.Web; 
+using System.Web.Services; 
+using System.Web.Services.Protocols; 
+using System.Xml.Linq; 
+using System.Data.SqlClient; 
+using System.Web.SessionState; //支持session必须的引用 
+using System.Configuration;
+using Microsoft.ApplicationBlocks.Data;
+using System.Text.RegularExpressions;
+using yanzheng_tools;
+
+namespace Website.Ajax 
+{
+    [WebService(Namespace = "http://tempuri.org/")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    public class login : IHttpHandler, IRequiresSessionState
+    {
+       [WebMethod(EnableSession = true)]
+        public void ProcessRequest(HttpContext context)
+        {      
+            context.Response.ContentType = "text/html"; //解决360极速浏览器chrome内核不兼容问题       
+           //接收到的数据
+        string username_c = context.Request.Form["username"];
+        string xuehao_c =context.Request.Form["xuehao"];
+        string sfzh_c = context.Request.Form["sfzh"];
+         //检查输入的规范性，第1层防护
+        if (!(yanzheng.checkXuehao(xuehao_c)&&checkSfzh(sfzh_c)))
+        {
+            ///不规范的做记录
+            ////////过滤非法字符，';--等，防止欺骗性规范，第2层防护
+            //string username_k = Filter(username_c);
+            //string xuehao_k = Filter(xuehao_c);
+            //string sfzh_k = Filter(sfzh_c);
+            //if (username_c.Trim() != username_k.Trim() || xuehao_c.Trim() != xuehao_k.Trim() || sfzh_c.Trim() != sfzh_k.Trim()) { yanzheng.write_hacklog2(context); };
+            context.Response.Write("2");//不符合数据库规范，已被记录        
+        }
+        else
+        {
+            //////过滤非法字符，';--等，防止欺骗性规范，第2层防护
+            string username_k = yanzheng.Filter(username_c);
+            string xuehao_k = yanzheng.Filter(xuehao_c);
+            string sfzh_k = yanzheng.Filter(sfzh_c);
+            //username_k="\""+username_k+"\"";
+            string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();            
+                SqlConnection conn = new SqlConnection(connStr);
+                //string sql = "select xhjm,Xm,Sfzh from xsjbdab where xhjm=@xuehao1 and Xm=@xingmin1 and Sfzh=@sfzh1";
+                string sql = "select xhjm,Xm,Sfzh from xsjbdab where xhjm=@xuehao1 and Sfzh=@sfzh1";
+            //string sql_login = "insert into log_denglu values(@id1,@name1,@Xm1,@number,@idcard1,'1',@ip1,@intime1,@outtime1,@standing1,'1','','')";  
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            ///参数化查询解决非法字符问题，并限制长度，第3层防护
+            //给参数赋值   
+            //SqlParameter pxingmin = cmd.Parameters.Add("@xingmin1", SqlDbType.VarChar, 10);
+            SqlParameter pxuehao = cmd.Parameters.Add("@xuehao1", SqlDbType.VarChar, 13);
+            SqlParameter psfzh = cmd.Parameters.Add("@sfzh1", SqlDbType.VarChar, 18);
+            //pxingmin.Value = username_k;
+            pxuehao.Value = xuehao_k;
+            psfzh.Value = sfzh_k;
+            // SqlCommand cmd = new SqlCommand(sql,new SqlHelper().sql(conn));
+            //if (conn.State == ConnectionState.Closed)
+            //{//如果连接的状态是关闭的话  
+            //    conn.Open();//打开连接  
+            //} 
+            conn.Open();
+            SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.CloseConnection); 
+            if (sdr.Read())
+            {  //索引速度更快,sdr[0].ToString();                 
+                string e234 = HttpUtility.UrlDecode(username_k);
+                string Xm_cha = sdr["Xm"].ToString();
+                string xuehao_cha= Convert.ToString(sdr["xhjm"]);              
+                if (Xm_cha==e234)
+                {                    
+                    //记录学生成功登录信息,先产生唯一编码
+                    Random sjm = new Random();
+                    double suijima = sjm.NextDouble();
+                    Int32 suijima_four = (Int32)(suijima * 10000);
+                    string suijima_weiyi = suijima_four.ToString("d4");
+                    string TimeFormat = "yyyyMMddHHmmss";
+                    string bianma_time = DateTime.Now.ToString(TimeFormat);
+
+                    context.Session["username"] = Xm_cha;
+                    context.Session["xuehao"] = xuehao_cha;
+                    context.Session["ry_kind"] = "2";//0:youke,1:xiaonei,2:student,3:xiaowai,4:fenxiao,5:hack
+
+                    context.Session["bianma_login"] = bianma_time.Trim() + suijima_weiyi.Trim() + context.Session["ry_kind"].ToString().Trim();
+                    //conn.Close();
+                    if (conn.State == ConnectionState.Open)
+                    {
+                        conn.Close();//关闭连接  
+                    }
+                    cmd.Dispose();
+                    //记录登录情况，并写入名册登录状态,1:在线；0：离线
+                    //logzt:0首页,1subject,2course,3play,4play_fra,5subject_gkk,/6zhuce,/7zhuxiao
+                    string sql_login = "insert into log_browse(bianma,logzt,Xm,number,ry_kind,ip,hostname,liulanqi,intime,status) values(@bianma1,'0',@Xm2,@number1,'2',@ip1,@hostname1,@liulanqi1,@intime1,'1');";
+                    //sql_login += "update xsjbdab set status='1' where xhjm=@number1";
+                    SqlCommand cmd1 = new SqlCommand(sql_login, conn);
+                    ///参数化查询解决非法字符问题，并限制长度，第3层防护   
+                    SqlParameter pbianma_login = cmd1.Parameters.Add("@bianma1", SqlDbType.VarChar, 19);
+                    SqlParameter pxingmin_login = cmd1.Parameters.Add("@Xm2", SqlDbType.VarChar, 10);
+                    SqlParameter pxuehao_login = cmd1.Parameters.Add("@number1", SqlDbType.VarChar, 13);
+                    SqlParameter pip = cmd1.Parameters.Add("@ip1", SqlDbType.VarChar, 20);
+                    SqlParameter phostname = cmd1.Parameters.Add("@hostname1", SqlDbType.VarChar, 20);
+                    SqlParameter pliulanqi = cmd1.Parameters.Add("@liulanqi1", SqlDbType.VarChar,150);
+                    SqlParameter pintime = cmd1.Parameters.Add("@intime1", SqlDbType.VarChar, 20);
+
+                    pbianma_login.Value = context.Session["bianma_login"].ToString();
+                    //pxingmin_login.Value = username_k;
+                    pxingmin_login.Value = e234;
+                    pxuehao_login.Value = xuehao_k;
+                    pip.Value = context.Request.UserHostAddress.ToString();
+                    phostname.Value = context.Request.UserHostName.ToString();
+                    pliulanqi.Value = context.Request.UserAgent.ToString();
+                    pintime.Value = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                    //记录登入时间点
+                    context.Session["login_time"] = pintime.Value;
+
+                    conn.Open();
+                    int count_login = cmd1.ExecuteNonQuery();
+                    if (count_login > 0) { context.Response.Write("1"); } // // 登录成功
+                    //writeintolog_denglu();
+                    else { context.Response.Write("0"); }
+                }
+                else { context.Response.Write("0"); }
+            }
+            else
+            {
+                context.Session["username"] = "";
+                context.Session["xuehao"] = "";
+                context.Session["ry_kind"] = "";
+                //context.Session["StuNumber"] = "";
+                //context.Response.Write("false"); //登录失败，用户名或密码错误 
+                context.Response.Write("5");  //没有这个用户名             
+            }
+            sdr.Close();
+            conn.Close();                 
+        }      
+        context.Response.End();//必不可少，不然360极速浏览器会出错 
+       }
+              
+         /// 过滤字符串 
+         public static string Filter(string value) 
+        { 
+            if (string.IsNullOrEmpty(value)) return string.Empty; 
+            value = Regex.Replace(value, @";", string.Empty); 
+            value = Regex.Replace(value, @"'", string.Empty); 
+            //value = Regex.Replace(value, @"&", string.Empty); 
+            //value = Regex.Replace(value, @"%20", string.Empty); 
+            value = Regex.Replace(value, @"--", string.Empty); 
+            value = Regex.Replace(value, @"==", string.Empty); 
+            value = Regex.Replace(value, @" <", string.Empty); 
+            value = Regex.Replace(value, @">", string.Empty); 
+            //value = Regex.Replace(value, @"%", string.Empty);
+            value = Regex.Replace(value, @" ", string.Empty);
+            value = Regex.Replace(value, @"{", string.Empty);
+            value = Regex.Replace(value, @"}", string.Empty);
+            value = Regex.Replace(value, @"select", string.Empty);
+            value = Regex.Replace(value, @"insert", string.Empty);
+            value = Regex.Replace(value, @"delete", string.Empty);
+            value = Regex.Replace(value, @"or", string.Empty);
+ 
+            return value; 
+        }
+        
+        /// 输入的规范性检查
+         public static bool checkXm(string username_c)
+         {
+            string str = username_c;
+            string str2 = HttpUtility.UrlDecode(username_c).ToString().Trim();
+
+            string pattern = @"^[\u4e00-\u9fa5]$";
+            //string pattern = @"/^\d{3}$|^[\u4e00-\u9fa5]{2,5}$/";   //匹配/和hp之间的字符
+                       ///^\d{3}$|^[\u4e00-\u9fa5]{2,5}$/
+                             //^[\u4E00-\u9FA5]+$
+                             //^[\u4E00-\u9FA5]+$
+                             //([\u4e00-\u9fa5]{2,4})  
+                             //^[\u4E00-\u9FA5]+$
+             bool exist = Regex.IsMatch(str2, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str2, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;                
+             }
+             else
+             {
+                 return true;
+             }
+
+         }
+         /// <summary>  
+         /// 验证只包含汉字  
+         /// </summary>  
+         /// <param name="input">待验证的字符串</param>  
+         /// <returns>是否匹配</returns>  
+         //public static bool IsChineseCharacter(string input)
+         //{
+         //    string pattern = @"^[\u4e00-\u9fa5]+$";
+         //    return IsMatch(input, pattern);
+         //}  
+         //check the pwd 
+         public static bool checkXuehao(string xuehao_c)
+         {
+             string str = xuehao_c;
+             string pattern = @"/^\d{13}$|^\d{12}$|^\d{11}$|^\d{9}$|^\d{8}$|^\d{7}$|^\d{3}$/";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             //bool exist =  IsIntegerLength(str,3,13);
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         /// <summary>  
+         /// 验证数字长度范围（数字前端的0计长度）  
+         /// [若要验证固定长度，可传入相同的两个长度数值]  
+         /// </summary>  
+         /// <param name="input">待验证的字符串</param>  
+         /// <param name="lengthBegin">长度范围起始值（含）</param>  
+         /// <param name="lengthEnd">长度范围结束值（含）</param>  
+         /// <returns>是否匹配</returns>  
+         //public static bool IsIntegerLength(string input, int lengthBegin, int lengthEnd)
+         //{
+         //    //string pattern = @"^\d{" + lengthBegin + "," + lengthEnd + "}$";  
+         //    //return IsMatch(input, pattern);  
+         //    if (input.Length >= lengthBegin && input.Length <= lengthEnd)
+         //    {
+         //        int i;
+         //        if (int.TryParse(input, out i))
+         //            return true;
+         //        else
+         //            return false;
+         //    }
+         //    else
+         //        return false;
+         //}  
+         // check the check code 
+         public static bool checkSfzh(string sfzh_c)
+         {
+             string str = sfzh_c;
+             string pattern = @"^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{11}$|^\d{8}$|^\d{7}$|^\d{3}$";   //匹配/和hp之间的字符
+                             //@"/^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{3}$/"
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+        
+        public bool IsReusable
+        {
+            get
+            {
+                return false;
+            }
+        }
+    
+    }
+
+}
+```
+
+
+## 登陆人员类型区分
+- 人员区分：0游客、1校内、2学员、3校外注册人员、4分校、5hack
+```{rcpp}
+ protected void Page_Load(object sender, EventArgs e)
+    {        
+       if (!IsPostBack)
+        { 
+           if (Session["username"] == null || Session["username"].ToString() == "")
+            {
+                denglu_xiaowai.Text = "注册登录";
+                denglu_student.Text = "学员登录";
+                denglu_xiaonei.Text = "校内登录";
+                zhuxiao.Text = "";
+            }
+            //0:youke,1:teacher,2:student,3:xiaowai,4:fenxiao;
+           else if (Session["ry_kind"].ToString() == "0")
+           {
+               denglu_xiaonei.Text = "欢迎你：" +Session["username"].ToString();
+               denglu_student.Text = "";
+               denglu_xiaowai.Text = "";
+               zhuce_xiaowai.Text = "";
+               zhuxiao.Text = "注销";
+           }
+           else if (Session["ry_kind"].ToString() == "1")
+           {
+               denglu_xiaonei.Text = "欢迎你：" +Session["username"].ToString();
+               denglu_student.Text = "";
+               denglu_xiaowai.Text = "";
+               zhuce_xiaowai.Text = "";
+               zhuxiao.Text = "";
+           }
+           else if (Session["ry_kind"].ToString() == "2")
+           {
+               denglu_student.Text = "欢迎你："+Session["username"].ToString();
+               denglu_xiaowai.Text = "";
+               denglu_xiaonei.Text = "";
+               zhuce_xiaowai.Text = "";
+               zhuxiao.Text = "注销";
+           }
+           else if (Session["ry_kind"].ToString() == "3")
+           {
+               denglu_xiaowai.Text = "欢迎你：" +Session["username"].ToString();
+               denglu_student.Text = "";
+               denglu_xiaonei.Text = "";
+               zhuce_xiaowai.Text = "";
+               zhuxiao.Text = "注销";
+           }
+           else if (Session["ry_kind"].ToString() == "4")
+           {
+               denglu_xiaonei.Text = "欢迎你："+ Session["username"].ToString();
+               denglu_student.Text = "";               
+               denglu_xiaowai.Text = "";
+               zhuce_xiaowai.Text = "";
+               zhuxiao.Text = "注销";
+           }
+           else
+           {
+               Response.Redirect("default.aspx");
+           }           
+        }
+    }  
+```
+
+
+## 浏览器版本（ie6、ie7、ie8）的兼容
+- IE6、7关于position的定义字段模式均不同，导致IE6下不能滚动，IE7不支持fixed属性，按照IE6的方式处理。
+
+- LeanModal是一个用于创建模式对话框的超级简单JQuery插件。可以展示隐藏的页面内容，整个插件大小只有780bytes，可灵活变化高度和宽度，没有用到任何图片，支持在一个页面中创建多个实例，非常适合于创建：登录框，注册框，警告对话框等。最重要的是界面非常干净UI设计很不错。
+
+步骤1：将JQuery，jquery.leanModal.min.js 添加到您的页面：
+
+* > //<script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
+
+步骤2：样式表，只需包括以下覆盖样式块你现有的样式表中。另外，务必要隐藏您模态的元素与  'display: none;' 。
+
+> //#lean_overlay {
+    position: fixed;
+    z-index:100;
+    top: 0px;
+    left: 0px;
+    height:100%;
+    width:100%;
+    background: #000;
+    display: none;
+  }
+
+步骤3：在您的触发器上，调用如下所示的函数。一定要设置你的触发锚以匹配您的目标元素的 id 的 href 属性。
+
+> $("a[rel*=leanModal]").leanModal();
+
+或如果您希望在同一页上的多个模态窗口，只需将 'rel' 属性添加到您的触发器和属性，通过调用函数就像这样：
+
+> $("#trigger_id").leanModal({ top : 200, overlay : 0.4, closeButton: ".modal_close" });
+
+开发过程中，登陆界面遇到浏览器不兼容问题，ie6下不能滚动，ie7不能正常显示，其协议最为特殊，经过hack，完美支持。代码如下：
+
+```{rcpp}
+(function($){
+ 
+    $.fn.extend({ 
+         
+        leanModal: function(options) {
+ 
+            var defaults = {
+                top: 100,
+                overlay: 0.5,
+                closeButton: null
+            }
+            
+            var overlay = $("<div id='lean_overlay'></div>");
+            
+            $("body").append(overlay);
+                 
+            options =  $.extend(defaults, options);
+ 
+            return this.each(function() {
+            
+                var o = options;
+               
+                $(this).click(function(e) {
+//                //xiugai
+//                 if ( $('#lean_overlay').size() == 0) {//修正点击多次重复添加背景
+//                           $('#lean_overlay') = $("<div id='lean_overlay'></div>");
+//                           $("body").append( $('#lean_overlay'));
+//                            $('#lean_overlay').click(function () { close_modal($(this).attr("href")); });
+//                       }              
+              	var modal_id = $(this).attr("href");
+              	
+				$("#lean_overlay").click(function() { 
+                     close_modal(modal_id);                    
+                });
+                
+                $(o.closeButton).click(function() { 
+                     close_modal(modal_id);                    
+                });
+                         	
+              	var modal_height = $(modal_id).outerHeight();
+        	  	var modal_width = $(modal_id).outerWidth();
+        		
+        		//xiugai
+        		css1 = document.compatMode == 'CSS1Compat', 
+        		ie6 = /msie 6/i.test(navigator.userAgent) || (!!document.all && !css1);//IE7+文档说明不是xhtml的也不支持fixed属性，只能按照ie6的方法来处理         
+        		if (ie6) 
+        		{ 
+        		    //IE6设置width 100%，height：100%在CSS1Compat下好像么有用，直接设置为根节点的滚动高和宽得了
+                    $('#lean_overlay').css({ position: 'absolute', height: document[css1 ? 'documentElement' : 'body'].scrollHeight, width: document[css1 ? 'documentElement' : 'body'].scrollWidth });
+                           //修正IE6滚动问题
+                   $(window).scroll(function () { $(modal_id).css({ top: document[css1 ? 'documentElement' : 'body'].scrollTop + o.top }); });                       
+                }
+               else
+               {
+                   $('#lean_overlay').css({ 'display' : 'block', opacity : 0 });
+                   
+               }
+
+        		$('#lean_overlay').fadeTo(200,o.overlay);
+
+        		$(modal_id).css({ 
+        		
+        			'display' : 'block',
+        			'position' : ie6 ? 'absolute' : "fixed",
+        			'opacity' : 0,
+        			'z-index': 1300,
+        			'left' : 50 + '%',
+        			'margin-left' : -(modal_width/2) + "px",
+        			'top' : o.top + "px"
+        		
+        		});
+
+        		$(modal_id).fadeTo(200,1);
+
+                e.preventDefault();
+                		
+              	});
+             
+            });
+
+			function close_modal(modal_id){
+
+        		$("#lean_overlay").fadeOut(200);
+                //.trigger added
+        		$(modal_id).css({ 'display' : 'none' }).trigger('leanmodal:closed');
+			
+			}
+    
+        }
+    });
+     //add a newline
+})(jQuery);
+
+```
+如有疑问,可上<https://github.com/tudou2015/leanModal.js>提pr给我。感兴趣相关技术问题也可以关注我的新浪微博tudou_2016，欢迎探讨。
+
+## 数据验证
+- 学员登陆时，姓名、学号、身份证号是否符合规则，比如汉字、数字、位数，分别限定，不符合提示按规则填写。
+- 校外注册人员登陆，昵称、密码是否符合规则，比如密码位数要6位以上，同时显示为＊。
+- 注册时，用户名、密码、姓名、身份证号、QQ、电子邮箱、手机号分别验证是否符合规则。
+采用双重验证，客户端提交前验证，后台查询数据库前验证数据是否符合规则，保护数据库安全，防止传输过程中遭到篡改或者通过URL方式直接发送。
+- 这一块不再举例，见其他章节代码均有涉及。
+```{rcpp}
+
+```
+
+## 模糊搜索
+首先模糊搜索未必是最好的选择，精确搜索可能作用更大，因为从很多条类似纪录中遴选出符合条件的一条或几条也是很头疼的事。后续考虑改为精确搜索，或者使用机器学习技术精确推荐客户所需要的信息。默认列出前12条纪录。
+
+- 第一步，js指定搜索按钮行为。
+```{rcpp}
+$(function() {
+    $.getJSON("ajax/search.ashx", function(data) {
+        $('#keyword').autocomplete(data, {
+            max: 12, //列表里的条目数   
+            minChars: 0, //自动完成激活之前填入的最小字符   
+            width: 292, //提示的宽度，溢出隐藏   
+            scrollHeight: 580, //提示的高度，溢出显示滚动条   
+            matchContains: true, //包含匹配，就是data参数里的数据，是否只要包含文本框里的数据就显示   
+            autoFill: false, //自动填充   
+            //匹配的项所要发生的事件  
+            formatItem: function(row, i, max) {//row表示每一行的数据对象，i表示每一行的编号，max表示总的数据行数  
+                //                    return i + '/' + max + ':"' + row.name + '"[' + row.to + ']';
+                return row.cataid + " " + row.title;
+               
+              
+            }
+            
+            //            formatMatch: function (row, i, max) {  
+            //                return row.ProductId + row.ProductName;  
+            //            },  
+            //            formatResult: function (row) {  
+            //                return row.ProductName;  
+            //            }  
+        }).result(function(event, row, formatted) {
+//            documentElement.getElementById("sousuo_course").value=row.title;
+//                     $('#sousuo_course').value=row.title;
+//                        alert(row.title);   
+//            alert("sousuo_course".value);         
+        });         
+    });
+      
+});  
+function search()
+    {  var ss = new Array([2]);
+       ss= $('#keyword').val().split(" ");
+        var ss1=ss[0];
+        var ss2= ss[1];
+        window.parent.self.location.href="course/course.aspx?id="+escape(ss2)+"&cataid="+escape(ss1);    
+    };
+```
+
+- 第二步，ashx函数调用方式查询数据库，表面效果类似Ajax。并且能同时发起多个ashx任务。
+```{rcpp}
+<%@ WebHandler Language="C#" Class="Website.Ajax1.search" %>
+
+using System; 
+using System.Collections; 
+using System.Data; 
+using System.Linq; 
+using System.Web; 
+using System.Web.Services; 
+using System.Web.Services.Protocols; 
+using System.Xml.Linq; 
+using System.Data.SqlClient; 
+using System.Web.SessionState; //支持session必须的引用 
+using System.Configuration;
+using Microsoft.ApplicationBlocks.Data;
+using Newtonsoft.Json;
+
+namespace Website.Ajax1
+{
+    [WebService(Namespace = "http://tempuri.org/")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    public class search : IHttpHandler, IRequiresSessionState
+    {
+        protected DataTable dt = null; 
+
+       [WebMethod(EnableSession = true)]
+        public void ProcessRequest(HttpContext context)
+        {
+           context.Response.ContentType = "application/json";
+            //context.Response.Write("Hello World");
+          //string[] kk = context.Request.Form.AllKeys;         
+           //string title1 = context.Request.Form["q"];
+            dt = DBHelper.GetDataTable();  
+             string title1=JsonConvert.SerializeObject(dt); 
+           
+            if (dt != null)
+            {
+                string data = JsonConvert.SerializeObject(dt);                
+                context.Response.Write(data);
+                context.Response.Flush();
+                context.Response.End();
+            }             
+        }
+   
+       public class DBHelper
+       {
+
+          // private static string str = ConfigurationManager.ConnectionStrings["ConnectionStr"].ToString();
+           private static string str = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();  
+           public DBHelper()
+           {
+
+           }
+
+           public static SqlConnection getConnection()
+           {
+               SqlConnection conn = new SqlConnection(str);
+               return conn;
+           }
+
+           public static DataTable GetDataTable()
+           {
+               DataSet ds = new DataSet();
+               using (SqlConnection conn = DBHelper.getConnection())
+               {
+                   //string sqlstr = "select * from tb_Product";
+                   //string sqlstr = "SELECT title FROM category WHERE title = '" + title1 + "'"; 
+                   //string sqlstr = "SELECT title,etitle FROM category";
+                   string sqlstr = "SELECT title,cataid,hits FROM course order by hits desc";//asc
+                   //string sqlstr = "SELECT title,cataid,hits FROM course WHERE title = '" + title1 + "' order by hits desc";//asc
+                   SqlCommand comm = new SqlCommand(sqlstr, conn);
+                   SqlDataAdapter adapt = new SqlDataAdapter(comm);
+                   adapt.Fill(ds);
+               }
+               return ds.Tables[0];
+           }
+       }
+        public bool IsReusable
+        {
+            get
+            {
+                return false;
+            }
+        }
+    }
+
+}
+```
+
+
+## 学习时间的记录
+学员登录时，记录登录时间，退出时或者关闭网页时记录退出时间，两者相减得到停留时间或者视频播放时间，使用Excel或者R软件从学习时间的统计分析出一些有用的结果，具体留待后续课题研究。
+### 记录登入时间
+- head里面插入如下js脚本，即可检测到关闭窗口动作，然后跳转到关闭页面，写入关闭时间。并不总是有效，因为浏览器的协议不同，有时无法捕捉到关闭动作。
+```{rcpp}
+<head runat="server">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="robots" content="none"/>
+    <title><%=Session["yp_name"] %></title>
+<script type="text/javascript">  
+var flag=false;
+ window.onbeforeunload = function() //author: meizz 
+       { 
+              var n = window.event.screenX - window.screenLeft; 
+              var b = n > document.documentElement.scrollWidth-20; 
+              if(b &&window.event.clientY < 0 || window.event.altKey) 
+              { 
+                      flag=true;
+              } 
+              else
+              { 
+                  flag=false;
+              }
+       }
+window.onunload = function()
+        {  
+            if(flag) 
+            {
+                window.parent.self.location="guanbi.aspx?id=3";
+            }
+        }       
+</script>   
+</head>
+```
+### 记录登出时间
+- 写入关闭时间代码如下：
+```{rcpp}
+using System;
+using System.Web;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+
+public partial class course_zhuxiao : System.Web.UI.Page
+{
+    protected void Page_PreInit(object sender,EventArgs e)
+    {
+        if (Session["ry_kind"] != null)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();
+            SqlConnection conn = new SqlConnection(connStr);
+            string sql_guanbi = "update log_browse set status='0',outtime=@outtime3,standing=@standing_34 where bianma=@bianma_34;";        
+            sql_guanbi += "update log_browse set status='0',outtime=@outtime3,standing=@standing_login where bianma=@bianma_login3;";          
+            SqlCommand cmd3 = new SqlCommand(sql_guanbi, conn);    
+            SqlParameter pbianma_login = cmd3.Parameters.Add("@bianma_login3", SqlDbType.VarChar,19);
+            SqlParameter pbianma_34 = cmd3.Parameters.Add("@bianma_34", SqlDbType.VarChar,19);        
+            SqlParameter pouttime = cmd3.Parameters.Add("@outtime3", SqlDbType.VarChar,20);
+            SqlParameter pstandingtime = cmd3.Parameters.Add("@standing_34", SqlDbType.VarChar, 20);
+            SqlParameter pstandingtime_login = cmd3.Parameters.Add("@standing_login", SqlDbType.VarChar, 20);
+
+            pouttime.Value = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+
+            DateTime cc = Convert.ToDateTime(pouttime.Value);
+            DateTime ll=Convert.ToDateTime(Session["login_time"]);
+            pstandingtime_login.Value = cc.Subtract(ll).ToString();
+            if (Request.QueryString["id"].ToString() == "3") 
+            {               
+                DateTime aa = Convert.ToDateTime(Session["intime_play"]);
+                pbianma_34.Value = Session["bianma_play"];
+                pstandingtime.Value = cc.Subtract(aa).ToString();                
+            }           
+            if (Request.QueryString["id"].ToString() == "4") 
+            {
+                DateTime bb = Convert.ToDateTime(Session["intime_fra"]);
+                pbianma_34.Value = Session["bianma_fra"];
+                pstandingtime.Value = cc.Subtract(bb).ToString(); 
+            }
+            if (Request.QueryString["id"].ToString() == "10")
+            {
+                DateTime aa = Convert.ToDateTime(Session["intime_play_zt"]);
+                pbianma_34.Value = Session["bianma_play_zt"];
+                pstandingtime.Value = cc.Subtract(aa).ToString();
+            }
+            if (Request.QueryString["id"].ToString() == "11")
+            {
+                DateTime bb = Convert.ToDateTime(Session["intime_fra_zt"]);
+                pbianma_34.Value = Session["bianma_fra_zt"];
+                pstandingtime.Value = cc.Subtract(bb).ToString();
+            }      
+            pbianma_login.Value=Session["bianma_login"];            
+                  
+            conn.Open();
+            cmd3.ExecuteNonQuery();         
+            conn.Close();
+            cmd3.Dispose();
+        }        
+    }
+      
+}
+
+```
+
+## 防范sql注入式攻击
+### 正则表达式限制输入规则，服务器和客户端双重限制，这种方式在数据验证中也采用。（正则表达式的内容见参考书目，后续项目将采用 更加高效的正则方式，极大提高运算速度。）
+#### 客户端
+login_student.ashx.
+```{rcpp}
+<%@ WebHandler Language="C#" Class="Website.Ajax.login" %>
+
+using System; 
+using System.Collections; 
+using System.Data; 
+using System.Linq; 
+using System.Web; 
+using System.Web.Services; 
+using System.Web.Services.Protocols; 
+using System.Xml.Linq; 
+using System.Data.SqlClient; 
+using System.Web.SessionState; //支持session必须的引用 
+using System.Configuration;
+using Microsoft.ApplicationBlocks.Data;
+using System.Text.RegularExpressions;
+using yanzheng_tools;
+
+namespace Website.Ajax 
+{
+    [WebService(Namespace = "http://tempuri.org/")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    public class login : IHttpHandler, IRequiresSessionState
+    {
+       [WebMethod(EnableSession = true)]
+        public void ProcessRequest(HttpContext context)
+        {      
+            context.Response.ContentType = "text/html"; //解决360极速浏览器chrome内核不兼容问题       
+           //接收到的数据
+        string username_c = context.Request.Form["username"];
+        string xuehao_c =context.Request.Form["xuehao"];
+        string sfzh_c = context.Request.Form["sfzh"];
+         //检查输入的规范性，第1层防护
+        if (!(yanzheng.checkXuehao(xuehao_c)&&checkSfzh(sfzh_c)))
+        {
+            ///不规范的做记录
+            ////////过滤非法字符，';--等，防止欺骗性规范，第2层防护
+            //string username_k = Filter(username_c);
+            //string xuehao_k = Filter(xuehao_c);
+            //string sfzh_k = Filter(sfzh_c);
+            //if (username_c.Trim() != username_k.Trim() || xuehao_c.Trim() != xuehao_k.Trim() || sfzh_c.Trim() != sfzh_k.Trim()) { yanzheng.write_hacklog2(context); };
+            context.Response.Write("2");//不符合数据库规范，已被记录        
+        }
+        else
+        {
+            //////过滤非法字符，';--等，防止欺骗性规范，第2层防护
+            string username_k = yanzheng.Filter(username_c);
+            string xuehao_k = yanzheng.Filter(xuehao_c);
+            string sfzh_k = yanzheng.Filter(sfzh_c);
+            //username_k="\""+username_k+"\"";
+            string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();            
+                SqlConnection conn = new SqlConnection(connStr);
+                //string sql = "select xhjm,Xm,Sfzh from xsjbdab where xhjm=@xuehao1 and Xm=@xingmin1 and Sfzh=@sfzh1";
+                string sql = "select xhjm,Xm,Sfzh from xsjbdab where xhjm=@xuehao1 and Sfzh=@sfzh1";
+            //string sql_login = "insert into log_denglu values(@id1,@name1,@Xm1,@number,@idcard1,'1',@ip1,@intime1,@outtime1,@standing1,'1','','')";  
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            ///参数化查询解决非法字符问题，并限制长度，第3层防护
+            //给参数赋值   
+            //SqlParameter pxingmin = cmd.Parameters.Add("@xingmin1", SqlDbType.VarChar, 10);
+            SqlParameter pxuehao = cmd.Parameters.Add("@xuehao1", SqlDbType.VarChar, 13);
+            SqlParameter psfzh = cmd.Parameters.Add("@sfzh1", SqlDbType.VarChar, 18);
+            //pxingmin.Value = username_k;
+            pxuehao.Value = xuehao_k;
+            psfzh.Value = sfzh_k;
+            // SqlCommand cmd = new SqlCommand(sql,new SqlHelper().sql(conn));
+            //if (conn.State == ConnectionState.Closed)
+            //{//如果连接的状态是关闭的话  
+            //    conn.Open();//打开连接  
+            //} 
+            conn.Open();
+            SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.CloseConnection); 
+            if (sdr.Read())
+            {  //索引速度更快,sdr[0].ToString();                 
+                string e234 = HttpUtility.UrlDecode(username_k);
+                string Xm_cha = sdr["Xm"].ToString();
+                string xuehao_cha= Convert.ToString(sdr["xhjm"]);              
+                if (Xm_cha==e234)
+                {                    
+                    //记录学生成功登录信息,先产生唯一编码
+                    Random sjm = new Random();
+                    double suijima = sjm.NextDouble();
+                    Int32 suijima_four = (Int32)(suijima * 10000);
+                    string suijima_weiyi = suijima_four.ToString("d4");
+                    string TimeFormat = "yyyyMMddHHmmss";
+                    string bianma_time = DateTime.Now.ToString(TimeFormat);
+
+                    context.Session["username"] = Xm_cha;
+                    context.Session["xuehao"] = xuehao_cha;
+                    context.Session["ry_kind"] = "2";//0:youke,1:xiaonei,2:student,3:xiaowai,4:fenxiao,5:hack
+
+                    context.Session["bianma_login"] = bianma_time.Trim() + suijima_weiyi.Trim() + context.Session["ry_kind"].ToString().Trim();
+                    //conn.Close();
+                    if (conn.State == ConnectionState.Open)
+                    {
+                        conn.Close();//关闭连接  
+                    }
+                    cmd.Dispose();
+                    //记录登录情况，并写入名册登录状态,1:在线；0：离线
+                    //logzt:0首页,1subject,2course,3play,4play_fra,5subject_gkk,/6zhuce,/7zhuxiao
+                    string sql_login = "insert into log_browse(bianma,logzt,Xm,number,ry_kind,ip,hostname,liulanqi,intime,status) values(@bianma1,'0',@Xm2,@number1,'2',@ip1,@hostname1,@liulanqi1,@intime1,'1');";
+                    //sql_login += "update xsjbdab set status='1' where xhjm=@number1";
+                    SqlCommand cmd1 = new SqlCommand(sql_login, conn);
+                    ///参数化查询解决非法字符问题，并限制长度，第3层防护   
+                    SqlParameter pbianma_login = cmd1.Parameters.Add("@bianma1", SqlDbType.VarChar, 19);
+                    SqlParameter pxingmin_login = cmd1.Parameters.Add("@Xm2", SqlDbType.VarChar, 10);
+                    SqlParameter pxuehao_login = cmd1.Parameters.Add("@number1", SqlDbType.VarChar, 13);
+                    SqlParameter pip = cmd1.Parameters.Add("@ip1", SqlDbType.VarChar, 20);
+                    SqlParameter phostname = cmd1.Parameters.Add("@hostname1", SqlDbType.VarChar, 20);
+                    SqlParameter pliulanqi = cmd1.Parameters.Add("@liulanqi1", SqlDbType.VarChar,150);
+                    SqlParameter pintime = cmd1.Parameters.Add("@intime1", SqlDbType.VarChar, 20);
+
+                    pbianma_login.Value = context.Session["bianma_login"].ToString();
+                    //pxingmin_login.Value = username_k;
+                    pxingmin_login.Value = e234;
+                    pxuehao_login.Value = xuehao_k;
+                    pip.Value = context.Request.UserHostAddress.ToString();
+                    phostname.Value = context.Request.UserHostName.ToString();
+                    pliulanqi.Value = context.Request.UserAgent.ToString();
+                    pintime.Value = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                    //记录登入时间点
+                    context.Session["login_time"] = pintime.Value;
+
+                    conn.Open();
+                    int count_login = cmd1.ExecuteNonQuery();
+                    if (count_login > 0) { context.Response.Write("1"); } // // 登录成功
+                    //writeintolog_denglu();
+                    else { context.Response.Write("0"); }
+                }
+                else { context.Response.Write("0"); }
+            }
+            else
+            {
+                context.Session["username"] = "";
+                context.Session["xuehao"] = "";
+                context.Session["ry_kind"] = "";
+                //context.Session["StuNumber"] = "";
+                //context.Response.Write("false"); //登录失败，用户名或密码错误 
+                context.Response.Write("5");  //没有这个用户名             
+            }
+            sdr.Close();
+            conn.Close();                 
+        }      
+        context.Response.End();//必不可少，不然360极速浏览器会出错 
+       }
+              
+         /// 过滤字符串 
+         public static string Filter(string value) 
+        { 
+            if (string.IsNullOrEmpty(value)) return string.Empty; 
+            value = Regex.Replace(value, @";", string.Empty); 
+            value = Regex.Replace(value, @"'", string.Empty); 
+            //value = Regex.Replace(value, @"&", string.Empty); 
+            //value = Regex.Replace(value, @"%20", string.Empty); 
+            value = Regex.Replace(value, @"--", string.Empty); 
+            value = Regex.Replace(value, @"==", string.Empty); 
+            value = Regex.Replace(value, @" <", string.Empty); 
+            value = Regex.Replace(value, @">", string.Empty); 
+            //value = Regex.Replace(value, @"%", string.Empty);
+            value = Regex.Replace(value, @" ", string.Empty);
+            value = Regex.Replace(value, @"{", string.Empty);
+            value = Regex.Replace(value, @"}", string.Empty);
+            value = Regex.Replace(value, @"select", string.Empty);
+            value = Regex.Replace(value, @"insert", string.Empty);
+            value = Regex.Replace(value, @"delete", string.Empty);
+            value = Regex.Replace(value, @"or", string.Empty);
+ 
+            return value; 
+        }
+        
+        /// 输入的规范性检查
+         public static bool checkXm(string username_c)
+         {
+            string str = username_c;
+            string str2 = HttpUtility.UrlDecode(username_c).ToString().Trim();
+
+            string pattern = @"^[\u4e00-\u9fa5]$";
+            //string pattern = @"/^\d{3}$|^[\u4e00-\u9fa5]{2,5}$/";   //匹配/和hp之间的字符
+                       ///^\d{3}$|^[\u4e00-\u9fa5]{2,5}$/
+                             //^[\u4E00-\u9FA5]+$
+                             //^[\u4E00-\u9FA5]+$
+                             //([\u4e00-\u9fa5]{2,4})  
+                             //^[\u4E00-\u9FA5]+$
+             bool exist = Regex.IsMatch(str2, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str2, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;                
+             }
+             else
+             {
+                 return true;
+             }
+
+         }
+         /// <summary>  
+         /// 验证只包含汉字  
+         /// </summary>  
+         /// <param name="input">待验证的字符串</param>  
+         /// <returns>是否匹配</returns>  
+         //public static bool IsChineseCharacter(string input)
+         //{
+         //    string pattern = @"^[\u4e00-\u9fa5]+$";
+         //    return IsMatch(input, pattern);
+         //}  
+         //check the pwd 
+         public static bool checkXuehao(string xuehao_c)
+         {
+             string str = xuehao_c;
+             string pattern = @"/^\d{13}$|^\d{12}$|^\d{11}$|^\d{9}$|^\d{8}$|^\d{7}$|^\d{3}$/";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             //bool exist =  IsIntegerLength(str,3,13);
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         /// <summary>  
+         /// 验证数字长度范围（数字前端的0计长度）  
+         /// [若要验证固定长度，可传入相同的两个长度数值]  
+         /// </summary>  
+         /// <param name="input">待验证的字符串</param>  
+         /// <param name="lengthBegin">长度范围起始值（含）</param>  
+         /// <param name="lengthEnd">长度范围结束值（含）</param>  
+         /// <returns>是否匹配</returns>  
+         //public static bool IsIntegerLength(string input, int lengthBegin, int lengthEnd)
+         //{
+         //    //string pattern = @"^\d{" + lengthBegin + "," + lengthEnd + "}$";  
+         //    //return IsMatch(input, pattern);  
+         //    if (input.Length >= lengthBegin && input.Length <= lengthEnd)
+         //    {
+         //        int i;
+         //        if (int.TryParse(input, out i))
+         //            return true;
+         //        else
+         //            return false;
+         //    }
+         //    else
+         //        return false;
+         //}  
+         // check the check code 
+         public static bool checkSfzh(string sfzh_c)
+         {
+             string str = sfzh_c;
+             string pattern = @"^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{11}$|^\d{8}$|^\d{7}$|^\d{3}$";   //匹配/和hp之间的字符
+                             //@"/^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{3}$/"
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+        
+        public bool IsReusable
+        {
+            get
+            {
+                return false;
+            }
+        }
+    
+    }
+
+}
+```
+
+#### 服务器端
+```{rcpp}
+/// 输入的规范性检查
+         //用户名
+         public static bool checkUserName(string username_c)
+         {
+             string str = username_c;
+             string pattern = @"^\d{3}$|[a-zA-Z][a-zA-Z0-9_]{4,15}$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+
+         }
+         //check the pwd 
+         public static bool checkUserPwd(string password_c)
+         {
+             string str = password_c;
+             string pattern = @"^[a-zA-Z0-9]{6,15}$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         //check the xuehao 
+         public static bool checkXuehao(string xuehao_c)
+         {
+             string str = xuehao_c;
+             string pattern = @"^\d{13}$|^\d{12}$|^\d{11}$|^\d{9}$|^\d{8}$|^\d{7}$|^\d{3}$";
+             //string pattern = @"^\d{3,13}$";   //匹配/和hp之间的字符^\d{m,n}$
+             //string pattern = @"^[0-9]*[1-9][0-9]*$";             
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         // check the Sfzh 
+         public static bool checkSfzh(string sfzh_c)
+         {
+             string str = sfzh_c;
+             string pattern = @"^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$|^\d{3}$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 string id=sfzh_c;
+                  string id_17 = string.Empty;//前17位
+                  Regex reg = new Regex("(^\\d{15}$)|(^\\d{18}$)|(^\\d{17}(\\d|X|x)$)");
+                  if (id.Length == 18)//18位时 
+                   { 
+                   id_17 = id.Substring(0, 17);  
+                    int[] num = new int[17];//声明数组存放每一位数字 
+                        for (int i = 0; i < 17; i++) 
+                        { 
+                            num[i] = Convert.ToInt32(id.Substring(i, 1));//获取每位上的数字从左往右。                         
+                        } 
+                    //出生日期验证 
+                    reg = new Regex("^((((1[6-9]|[2-9]\\d)\\d{2})-(0?[13578]|1[02])-(0?[1-9]|[12]\\d|3[01]))|(((1[6-9]|[2-9]\\d)\\d{2})-(0?[13456789]|1[012])-(0?[1-9]|[12]\\d|30))|(((1[6-9]|[2-9]\\d)\\d{2})-0?2-(0?[1-9]|1\\d|2[0-8]))|(((1[6-9]|[2-9]\\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))-0?2-29-))$"); 
+                    /*声明变量并获取身份证号码中的“出生日期”*/ 
+                    string birth = string.Empty; 
+                        for (int i = 6, j = 0; i < 14; i++, j++) 
+                        { 
+                            birth += Convert.ToString(num[i]); 
+                            if (j == 3 || j == 5)//添加“-”使日期格式为yyyy-MM-dd 
+                            { 
+                                birth += "-"; 
+                              } 
+                        } 
+                   //验证出生日期 
+                        if (!reg.IsMatch(birth)) 
+                        { 
+                            //return message = "身份证号码输入有误"; 
+                            return false;
+                        } 
+                        else if (Convert.ToDateTime(birth).AddYears(18) > Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd")) || Convert.ToDateTime(birth).AddYears(75) < Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd"))) 
+                        { 
+                            //return message = "身份证号码输入有误年龄应在18到75岁之间"; 
+                            return false;
+                        }                     
+                        //从左往右每一位的权7910584216379105842 
+                        int[] quan = new int[17] { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 }; 
+                        int sum = 0; 
+                        for (int i = 0; i < 17; i++) 
+                        { 
+                            sum += num[i] * quan[i]; 
+                        } 
+                        //余数sum % 11  012345678910可视为索引 
+                        //对应值10X98765432 
+                        string[] duiyingz = new string[11] { "1", "0", "X", "9", "8", "7", "6", "5","4", "3", "2" }; 
+                        if ((id_17 + duiyingz[sum % 11]).Equals(id.ToUpper())) 
+                        { 
+                            //return message = string.Empty; 
+                            return true;
+                        } 
+                        else 
+                        { 
+                            //return message = "身份证号码输入有误"; 
+                            return false;
+                        } 
+                    } 
+                        else//十五位身份证 
+                        { 
+                        id = id.Insert(6, "19");//给15位身份证升级补全年份。 
+                        int[] num = new int[17];//声明数组存放每一位数字 
+                          for (int i = 0; i < 17; i++) 
+                            { 
+                                num[i] = Convert.ToInt32(id.Substring(i, 1));//获取每位上的数字从左往右。                         
+                            } 
+                        //出生日期验证 
+                        reg = new Regex("^((((1[6-9]|[2-9]\\d)\\d{2})-(0?[13578]|1[02])-(0?[1-9]|[12]\\d|3[01]))|(((1[6-9]|[2-9]\\d)\\d{2})-(0?[13456789]|1[012])-(0?[1-9]|[12]\\d|30))|(((1[6-9]|[2-9]\\d)\\d{2})-0?2-(0?[1-9]|1\\d|2[0-8]))|(((1[6-9]|[2-9]\\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))-0?2-29-))$"); 
+                        /*声明变量并获取身份证号码中的“出生日期”*/ 
+                        string birth = string.Empty; 
+                            for (int i = 6, j = 0; i < 14; i++, j++) 
+                            { 
+                                birth += Convert.ToString(num[i]); 
+                                if (j == 3 || j == 5)//添加“-”使日期格式为yyyy-MM-dd 
+                                { 
+                                    birth += "-"; 
+                                } 
+                            } 
+                        //验证出生日期 
+                            if (!reg.IsMatch(birth)) 
+                            { 
+                                //return message = "身份证号码输入有误"; 
+                                return false;
+                            } 
+                            else if (Convert.ToDateTime(birth).AddYears(18) > Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd")) || Convert.ToDateTime(birth).AddYears(75) < Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd"))) 
+                            { 
+                                //return message = "身份证号码输入有误年龄应在18到75岁之间"; 
+                                return false;
+                            } 
+                            else 
+                            { 
+                                //return message = string.Empty; 
+                                return true;
+                            } 
+                        } 
+                
+                //  else//不符合身份证规则(非15或18位) 
+                //{ 
+                //    //return message = "身份证号码格式输入有误请输入15或18位身份证号码"; 
+                //    return false;
+                //} 
+             }
+
+                 //return true;
+            
+         }
+         // check QQ 
+         public static bool checkQQ(string qq_c)
+         {
+             string str = qq_c;
+             string pattern = @"^[1-9]\d{4,8}$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         // check email 
+         public static bool checkEmail(string email_c)
+         {
+             string str = email_c;
+             string pattern = @"^([a-zA-Z0-9]+[_|_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|_|.]?)*[a-zA-Z0-9]+\.(?:com|cn)$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+         // check phone 
+         public static bool checkPhone(string phone_c)
+         {
+             string str = phone_c;
+             string pattern = @"^(((13[0-9]{1})|(15[0-9]{1}))+\d{8})$";   //匹配/和hp之间的字符
+             bool exist = Regex.IsMatch(str, pattern);  //验证下是否匹配成功
+             string result = Regex.Match(str, pattern).Value; //匹配到的值          
+             if (!exist)
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+         }
+```
+
+### 服务器端分析之前，危险字符过滤。比如or/and/-/;/'/等。
+
+```{rcpp}
+  public static string Filter(string value) 
+        { 
+            if (string.IsNullOrEmpty(value)) return string.Empty; 
+            value = Regex.Replace(value, @";", string.Empty); 
+            value = Regex.Replace(value, @"'", string.Empty); 
+            //value = Regex.Replace(value, @"&", string.Empty); 
+            //value = Regex.Replace(value, @"%20", string.Empty); 
+            //value = Regex.Replace(value, @"--", string.Empty); 
+            value = Regex.Replace(value, @"==", string.Empty); 
+            value = Regex.Replace(value, @" <", string.Empty); 
+            value = Regex.Replace(value, @">", string.Empty); 
+            //value = Regex.Replace(value, @"%", string.Empty); 
+            //value = Regex.Replace(value, @"*", string.Empty);
+            value = Regex.Replace(value, @"{", string.Empty);
+            value = Regex.Replace(value, @"}", string.Empty);
+            value = Regex.Replace(value, @"select", string.Empty);
+            value = Regex.Replace(value, @"insert", string.Empty);
+            value = Regex.Replace(value, @"delete", string.Empty);
+            value = Regex.Replace(value, @"or", string.Empty);
+ 
+            return value; 
+        }
+```
+### 写hack日志
+```{rcpp}
+public static void write_hacklog2(HttpContext My) 
+         {
+             string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();
+             SqlConnection conn = new SqlConnection(connStr);
+             string sql_hacklog2 = "insert into hacklog2(ip,hostname,shijian,ry_kind,username,liulanqi,querystring,rawurl,url,servername,localip) values(@ip1,@hostname1,@shijian1,@ry_kind1,@username1,@liulanqi1,@querystring1,@rawurl1,@url1,@servername1,@localip1);";
+             //sql_login += "update xsjbdab set status='1' where xhjm=@number1";
+             SqlCommand cmd_hack = new SqlCommand(sql_hacklog2, conn);
+             ///参数化查询解决非法字符问题，并限制长度，第3层防护   
+             //SqlParameter pbianma_login = cmd1.Parameters.Add("@bianma1", SqlDbType.VarChar, 19);
+            SqlParameter pip = cmd_hack.Parameters.Add("@ip1", SqlDbType.VarChar, 15);
+            SqlParameter phostname = cmd_hack.Parameters.Add("@hostname1", SqlDbType.VarChar, 20);
+            SqlParameter pshijian = cmd_hack.Parameters.Add("@shijian1", SqlDbType.VarChar, 20);
+            SqlParameter pry_kind = cmd_hack.Parameters.Add("@ry_kind1", SqlDbType.VarChar, 1);
+            SqlParameter pusername = cmd_hack.Parameters.Add("@username1", SqlDbType.VarChar, 18);
+            SqlParameter pliulanqi = cmd_hack.Parameters.Add("@liulanqi1", SqlDbType.VarChar, 150);
+            SqlParameter pquerystring = cmd_hack.Parameters.Add("@querystring1", SqlDbType.VarChar,150);
+            SqlParameter prawurl = cmd_hack.Parameters.Add("@rawurl1", SqlDbType.VarChar, 200);
+            SqlParameter purl = cmd_hack.Parameters.Add("@url1", SqlDbType.VarChar, 200);
+            SqlParameter pservername = cmd_hack.Parameters.Add("@servername1", SqlDbType.VarChar, 20);
+            SqlParameter plocalip = cmd_hack.Parameters.Add("@localip1", SqlDbType.VarChar, 15);
+            
+            
+             //pbianma_login.Value = context.Session["bianma_login"].ToString();           
+             pip.Value =  My.Request.UserHostAddress;
+             phostname.Value = My.Request.UserHostName;
+             pliulanqi.Value = My.Request.UserAgent;             
+             pshijian.Value = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+             if (My.Session["username"] != null) { pusername.Value = My.Session["username"];pry_kind.Value = My.Session["ry_kind"]; }
+             else { pusername.Value = "匿名"; pry_kind.Value = "5"; }//0游客，1校内，2学生，3校外，4分校，5hack
+             pquerystring.Value = My.Request.QueryString.ToString();
+             prawurl.Value = My.Request.RawUrl.ToString();
+             purl.Value = My.Request.Url.ToString();
+             pservername.Value=My.Request.ServerVariables["SERVER_NAME"];
+             plocalip.Value = My.Request.ServerVariables["LOCAL_ADDR"];
+
+             conn.Open();
+             cmd_hack.ExecuteNonQuery();
+             conn.Close();
+         }
+```
+
+
+### sql采用参数化查询方式，利用.net本身机制对字符过滤。
+- 这一段不再举例，其他章节均有涉及。
+```{rcpp}
+
+```
+### 最后给出一个3层防护的例子（用户注册）
+```{rcpp}
+<%@ WebHandler Language="C#" Class="Website.Ajax.login" %>
+
+using System; 
+using System.Collections; 
+using System.Data; 
+using System.Linq; 
+using System.Web; 
+using System.Web.Services; 
+using System.Web.Services.Protocols; 
+using System.Xml.Linq; 
+using System.Data.SqlClient; 
+using System.Web.SessionState; //支持session必须的引用 
+using System.Configuration;
+using Microsoft.ApplicationBlocks.Data;
+using System.Text.RegularExpressions;
+using yanzheng_tools;
+
+namespace Website.Ajax 
+{
+    [WebService(Namespace = "http://tempuri.org/")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    public class login : IHttpHandler, IRequiresSessionState
+    {
+       [WebMethod(EnableSession = true)]
+        public void ProcessRequest(HttpContext context)
+        {      
+            context.Response.ContentType = "html"; //解决360极速浏览器chrome内核不兼容问题       
+           //接收到的数据
+        string username_c = context.Request.Form["username"];
+        string password_c = context.Request.Form["password"];   
+        string xingmin_c =context.Request.Form["xingmin"];
+        string sfzh_c = context.Request.Form["sfzh"];
+        string qq_c = context.Request.Form["qq"];
+        string email_c = context.Request.Form["email"];
+        string phone_c = context.Request.Form["phone"];
+         //检查输入的规范性，第1层防护
+        if (!(yanzheng.checkUserName(username_c)&&yanzheng.checkUserPwd(password_c)&&yanzheng.checkSfzh(sfzh_c)))
+        {
+            ///不规范的做记录
+            //writeinto_hacklog();
+            context.Response.Write("2");//不符合数据库规范，已被记录       
+        }
+        else
+        {
+            if (checkUserName_exist(username_c))
+            {
+                context.Response.Write("3");  //用户名已存在
+            }
+            else
+            {
+                ///过滤非法字符，';--等，防止欺骗性规范，第2层防护
+                string username_k = yanzheng.Filter(username_c);
+                string password_k = yanzheng.Filter(password_c);
+                string xingmin_k = yanzheng.Filter(xingmin_c);
+                string sfzh_k = yanzheng.Filter(sfzh_c);
+                string qq_k = yanzheng.Filter(qq_c);
+                string email_k = yanzheng.Filter(email_c);
+                string phone_k = yanzheng.Filter(phone_c);
+                string xingmin_zhuanma = HttpUtility.UrlDecode(xingmin_k);
+
+                Random sjm = new Random();
+                double suijima = sjm.NextDouble();
+                Int32 suijima_four = (Int32)(suijima * 10000);
+                string suijima_weiyi = suijima_four.ToString("d4");
+                string TimeFormat = "yyyyMMddHHmmss";
+                string bianma_time = DateTime.Now.ToString(TimeFormat);
+                string bianma_zhuce = bianma_time.Trim() + suijima_weiyi.Trim()+"3";
+
+                string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();
+                SqlConnection conn = new SqlConnection(connStr);
+                string sql = "insert into xwrydab values(@bm1,@shijian1,@username1,@password1,@xingmin1,@sfzh1,@qq1,@phone1,@email1,'3','','0',@liulanqi1,@ip1,@hostname1,'','')";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                ///参数化查询解决非法字符问题，并限制长度，第3层防护
+                SqlParameter pbianma_zhuce = cmd.Parameters.Add("@bm1", SqlDbType.VarChar, 19);
+                SqlParameter pshijian = cmd.Parameters.Add("@shijian1", SqlDbType.VarChar, 20);
+                SqlParameter pusername = cmd.Parameters.Add("@username1", SqlDbType.VarChar,20);
+                SqlParameter ppassword = cmd.Parameters.Add("@password1", SqlDbType.VarChar,15);
+                SqlParameter pxingmin = cmd.Parameters.Add("@xingmin1", SqlDbType.VarChar,10);
+                SqlParameter psfzh = cmd.Parameters.Add("@sfzh1", SqlDbType.VarChar,18);
+                SqlParameter pqq = cmd.Parameters.Add("@qq1", SqlDbType.VarChar,15);
+                SqlParameter pemail = cmd.Parameters.Add("@email1", SqlDbType.VarChar,30);
+                SqlParameter pphone = cmd.Parameters.Add("@phone1", SqlDbType.VarChar,11);
+                SqlParameter pip = cmd.Parameters.Add("@ip1", SqlDbType.VarChar, 15);
+                SqlParameter phostname = cmd.Parameters.Add("@hostname1", SqlDbType.VarChar, 20);
+                SqlParameter pliulanqi = cmd.Parameters.Add("@liulanqi1", SqlDbType.VarChar, 150);
+
+                pbianma_zhuce.Value = bianma_zhuce;
+                pshijian.Value = DateTime.Now.ToString();
+                pusername.Value = username_k;
+                ppassword.Value = password_k;
+                pxingmin.Value = xingmin_zhuanma;
+                psfzh.Value = sfzh_k;
+                pqq.Value = qq_k;
+                pemail.Value = email_k;
+                pphone.Value = phone_k;
+                pip.Value = context.Request.UserHostAddress.ToString();
+                phostname.Value = context.Request.UserHostName.ToString();
+                pliulanqi.Value = context.Request.UserAgent.ToString();
+
+                // SqlCommand cmd = new SqlCommand(sql,new SqlHelper().sql(conn));
+                conn.Open();             
+                int count = cmd.ExecuteNonQuery();
+                conn.Close();
+                if (count > 0)
+                { 
+                    context.Response.Write("1");//注册成功                   
+                }
+                else
+                {
+                    context.Response.Write("0");
+                }  
+            }           
+            context.Response.End();//必不可少，不然360极速浏览器会出错   
+        }  
+       }      
+        
+        //查询用户名是否已存在
+       public static bool checkUserName_exist(string username_e)
+       {
+           ///过滤非法字符，';--等，防止欺骗性规范，第2层防护
+           string username_k = yanzheng.Filter(username_e);          
+
+           string connStr = ConfigurationManager.ConnectionStrings["vodConnectionString"].ToString();
+           SqlConnection conn = new SqlConnection(connStr);
+           string sql = "select Username from xwrydab where Username=@username2";
+           SqlCommand cmd = new SqlCommand(sql, conn);
+           ///参数化查询解决非法字符问题，并限制长度，第3层防护
+           SqlParameter pusername = cmd.Parameters.Add("@username2", SqlDbType.VarChar, 18);         
+
+           pusername.Value = username_k; 
+          
+           conn.Open();
+           SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.CloseConnection);          
+           if (sdr.Read())
+           {
+               return true;//用户名已存在
+               
+           }
+           else
+           {
+               return false;//用户名可以使用
+           }         
+           conn.Close();
+       }
+        
+        public bool IsReusable
+        {
+            get
+            {
+                return false;
+            }
+        }
+    
+    }
+
+}
+```
+
+### 其他
+- 除了以上明确列出的7个关键技术，网站制作过程中还有很多很的小细节、小技巧，无法一一列出。比如，每次登入某个页面，先检查是否有危险字符，是否从首页进入，是否有观看权限等，为保护视频真实地址，采用服务器直接赋值访问，url上面不显示任何真实地址，只显示关键字和随机地址。具体代码如下：
+```{rcpp}
+ protected void Page_PreInit(object sender, EventArgs e)
+    {
+        Session["yp_kind"] = Request.QueryString["special1"];
+        //if (Session["username"] == null) { Session["ry_kind"] = "0"; }
+        tools.IsLogon_zt(HttpContext.Current);//检测危险字符
+        tools.IsLogon(HttpContext.Current);//判断访问权限
+        Session["yp_name"] = Request.QueryString["id"];
+        Session["yp_subject"] = Request.QueryString["cataid"];
+        Session["yp_course"] = Request.QueryString["course"];
+        Session["yp_type"] = Request.QueryString["type1"];         
+        //Session["yp_url"] = Request.QueryString["linkurl1"];       
+        string type2 = "";
+        //string linkurl2 = "";
+        //string type2 = "1";
+        //string linkurl2 = "mms://218.22.21.229/ahvodc/bk/hyybk/zgxddwxzt/《中国现当代文学专题（1）》辅导.asf";
+        ////string linkurl2 = "http://218.22.21.229/ip/bk/hyybk/zgxdwxzt/zgxdwxzt130509-1/content.htm";//type2=="4"
+        if (Request.QueryString["cataid"] == "微课程")
+        {
+            //Response.Redirect("play_wkc.aspx?"+Request.QueryString);
+            Response.Redirect("play_wkc.aspx?id=" + Request.QueryString["id"] + "&special1=" + Request.QueryString["special1"] + "&type1=" + Request.QueryString["type1"] + "&course=" + Request.QueryString["course"] + "&cataid=" + Request.QueryString["cataid"]);
+          
+        }
+        if (Request.QueryString["type1"] != null) { type2 = Request.QueryString["type1"]; }
+        //if (Request.QueryString["linkurl1"] != null) { linkurl2 = Request.QueryString["linkurl1"]; }
+        if (type2.Trim() == "5")
+        {
+            Session["yp_url"] = null;
+            Response.Redirect("../default.aspx");
+        }
+        if (type2.Trim() == "4")
+        {
+            Random r = new Random();
+            int a = r.Next(1, 20);
+            //Session["yp_url"] = Request.QueryString["linkurl1"];
+            //Response.Redirect("play_fra.aspx");
+            Response.Redirect("play_fra.aspx?id=" + a); 
+            //Response.Redirect( "<script>document.write(location.href = 'play_fra.aspx?id='+a);</script>");           
+            //Server.Transfer(Session["yp_url"].ToString()); 
+            //Response.Redirect(Session["yp_url"].ToString());
+        }
+        else
+        {  //对播放内容赋值
+            //lt_src.Text = linkurl2;        
+        }
+    
+    }
+```
+
+# **Ajax**流程的可视化
+## 实现方式一
+* PC访问网站，使用winshark软件抓包分析。
+- 这一块展开分析较多，并工作之余时间太少，一直没时间详加描述。
+
+## 实现方式二
+* 树莓派3b搭建服务器，nginx+mono+asp.net网站程序，
+* 树莓派3b搭建客户端，Chrome浏览器访问http://video.ahtvu.ah.cn/default.aspx
+* 树莓派2b搭建数据抓取端。
+- 这一块实现中出现困难，mono下无法正常运行asp.net，近期来微软加大了开源支持力度，相信不久就能更好的支持并实现。
+
+# 微课程相关概念
+
+##什么是微课程
+
+- 定义：微课是指按照新课程标准及教学实践要求，以教学视频为主要载体，反映教师在课堂教学过程中针对某个知识点或教学环节而开展教与学活动的各种教学资源的有机组合。
+
+## 为什么要做
+
+- 学生可以按照自己的进度自主学习
+
+- 支持翻转课堂的进行，节省上课时间，让上课时间更多的来交流和互动。
+
+- 重复利用。
+
+## 怎样做
+
+> **制作流程**：
+(1)选题：选择知识点。
+(2)设计：确定教学目标，选择教学策略，撰写脚本。
+(3)确定开发路线：包括录屏、实拍视频、二维、三维等。
+(4)开发：素材开发和整合。
+(5)检测。
+(6)传播。
+
+## 如何才能做好
+
+- 微课制作需要注意的地方：老师要熟悉教学知识点，做好教学设计是首要的。
+
+## 如何才能用好
+- 紧跟时代步伐，不断学习网络媒体等各种新技术，用优质的资源赢得优质的用户。
+
+# 需要进一步研究的问题
+- 自动提取分析各分校每年的学生学习数据。
+- 建立资源统一化标识，不同平台，直接调用restful风格的链接，打通平台之间的资源共享渠道。
